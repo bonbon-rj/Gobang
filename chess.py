@@ -1,5 +1,4 @@
 import tkinter as tk
-from operator import itemgetter
 
 
 class Chess:
@@ -9,25 +8,29 @@ class Chess:
         self.width, self.height = 900, 900  # window size
         self.width_offset, self.height_offset = 100, 100  # offset between chessboard and window
         self.spacing = int((self.width - 2 * self.width_offset) / (self.col - 1))  # spacing between each line
+        self.mouse_press_margin = 10  # the margin of mouse pressing
         self.ai_press_history = []
         self.human_press_history = []
-        self.is_human_turn = False  # 先手
+        self.is_human_turn = False  # whether human play chess first
         self.human_win = False
         self.ai_win = False
         self.is_close = False
 
-        self.count1 = 1
-        self.count2 = 1
-        self.count3 = 1
-        self.count4 = 1
-        self.be_count1 = []
-        self.be_count2 = []
-        self.be_count3 = []
-        self.be_count4 = []
+        # four types line be count
+        self.count1 = 1  # --
+        self.count2 = 1  # ||
+        self.count3 = 1  # \\
+        self.count4 = 1  # //
+
+        # four types line be count history
+        self.be_count1 = []  # --
+        self.be_count2 = []  # ||
+        self.be_count3 = []  # \\
+        self.be_count4 = []  # //
 
         # # window
         self.window = tk.Tk()
-        self.window.title = "Gobang"
+        self.window.title("Gobang")
         self.window.geometry(str(self.width) + "x" + str(self.height))
 
         # # canvas
@@ -45,56 +48,50 @@ class Chess:
         for x in range(self.width_offset, self.width - self.width_offset + width_step, width_step):
             self.chess.create_line(x, self.height_offset,
                                    x, self.height - self.height_offset,
-                                   fill="black", width=4)
+                                   fill="black", width=2)
             self.chess.create_line(self.width_offset, x,
                                    self.width - self.width_offset, x,
-                                   fill="black", width=4)
+                                   fill="black", width=2)
+
         # draw the circle
-        self.chess.create_oval(self.width_offset + 3 * self.spacing - 5,
-                               self.height_offset + 3 * self.spacing - 5,
-                               self.width_offset + 3 * self.spacing + 5,
-                               self.height_offset + 3 * self.spacing + 5,
-                               fill="black")
-        self.chess.create_oval(self.width_offset + 7 * self.spacing - 5,
-                               self.height_offset + 7 * self.spacing - 5,
-                               self.width_offset + 7 * self.spacing + 5,
-                               self.height_offset + 7 * self.spacing + 5,
-                               fill="black")
-        self.chess.create_oval(self.width_offset + 11 * self.spacing - 5,
-                               self.height_offset + 3 * self.spacing - 5,
-                               self.width_offset + 11 * self.spacing + 5,
-                               self.height_offset + 3 * self.spacing + 5,
-                               fill="black")
-        self.chess.create_oval(self.width_offset + 3 * self.spacing - 5,
-                               self.height_offset + 11 * self.spacing - 5,
-                               self.width_offset + 3 * self.spacing + 5,
-                               self.height_offset + 11 * self.spacing + 5,
-                               fill="black")
-        self.chess.create_oval(self.width_offset + 11 * self.spacing - 5,
-                               self.height_offset + 11 * self.spacing - 5,
-                               self.width_offset + 11 * self.spacing + 5,
-                               self.height_offset + 11 * self.spacing + 5,
-                               fill="black")
+        multiple = [[3, 3], [7, 7], [11, 3], [3, 11], [11, 11]]
+        for i in range(len(multiple)):
+            self.chess.create_oval(self.width_offset + multiple[i][0] * self.spacing - 5,
+                                   self.height_offset + multiple[i][1] * self.spacing - 5,
+                                   self.width_offset + multiple[i][0] * self.spacing + 5,
+                                   self.height_offset + multiple[i][1] * self.spacing + 5,
+                                   fill="black")
+
         # place
         self.chess.place(x=0, y=0, anchor="nw")
 
     def human_press_mouse(self, event, color):
+        """
+            This function be call if human press mouse
+            :param event: tk <Button-1>
+            :param color: the piece's color
+        """
         if self.width_offset < event.x < self.width - self.width_offset:
             if self.height_offset < event.y < self.height - self.height_offset:
+                # Leave a margin to press mouse
                 x_remainder, y_remainder = event.x % self.spacing, event.y % self.spacing
                 x_index, y_index = -1, -1
-                if x_remainder < 10:
+                # right
+                if x_remainder < self.mouse_press_margin:
                     x_index = int(event.x - x_remainder)
-                    if y_remainder < 10:
+                    if y_remainder < self.mouse_press_margin:
                         y_index = int(event.y - y_remainder)
-                    if y_remainder > self.spacing - 10:
+                    if y_remainder > self.spacing - self.mouse_press_margin:
                         y_index = int(event.y + (self.spacing - y_remainder))
-                if x_remainder > self.spacing - 10:
+                # left
+                if x_remainder > self.spacing - self.mouse_press_margin:
                     x_index = int(event.x + (self.spacing - x_remainder))
-                    if y_remainder < 10:
+                    if y_remainder < self.mouse_press_margin:
                         y_index = int(event.y - y_remainder)
-                    if y_remainder > self.spacing - 10:
+                    if y_remainder > self.spacing - self.mouse_press_margin:
                         y_index = int(event.y + (self.spacing - y_remainder))
+
+                # Check to play
                 if x_index != -1 and y_index != -1:
                     press = True
                     if not self.check_able_play(x_index, y_index):
@@ -105,6 +102,12 @@ class Chess:
                         self.is_human_turn = False
 
     def ai_show_piece(self, x, y, color):
+        """
+            This function be used to show where ai play
+            :param x: x index
+            :param y: y index
+            :param color: press color
+        """
         press = True
         if not self.check_able_play(x, y):
             press = False
@@ -113,32 +116,16 @@ class Chess:
             self.ai_press_history.append([x, y])
             self.is_human_turn = True
 
-    def check_game_over(self):
-        if len(self.ai_press_history) < 5 or len(self.human_press_history) < 5:
-            return 0
+    def count_the_consequent(self, x, y, history):
+        """
+            This function be used to count a piece's consequent num
+            :param x: x index
+            :param y: y index
+            :param history: whose history
+            :return: the count of four line types
+        """
 
-        if self.is_human_turn:
-            for history in self.human_press_history:
-                if max(self.count_the_continue(history[0], history[1], self.human_press_history)) >= 5:
-                    self.human_win = True
-                    return 1
-            for history in self.ai_press_history:
-                if max(self.count_the_continue(history[0], history[1], self.ai_press_history)) >= 5:
-                    self.ai_win = True
-                    return 1
-        else:
-            for history in self.ai_press_history:
-                if max(self.count_the_continue(history[0], history[1], self.ai_press_history)) >= 5:
-                    self.ai_win = True
-                    return 1
-            for history in self.human_press_history:
-                if max(self.count_the_continue(history[0], history[1], self.human_press_history)) >= 5:
-                    self.human_win = True
-                    return 1
-
-        return 0
-
-    def count_the_continue(self, x, y, history):
+        # "--" line type
         if [x, y] not in self.be_count1:
             self.be_count1 = []
             self.count1 = 1
@@ -154,6 +141,8 @@ class Chess:
                     self.count1 += 1
                 else:
                     break
+
+        # "||" line type
         if [x, y] not in self.be_count2:
             self.be_count2 = []
             self.count2 = 1
@@ -169,6 +158,8 @@ class Chess:
                     self.count2 += 1
                 else:
                     break
+
+        # "\\" line type
         if [x, y] not in self.be_count3:
             self.be_count3 = []
             self.count3 = 1
@@ -184,6 +175,8 @@ class Chess:
                     self.count3 += 1
                 else:
                     break
+
+        # "//" line type
         if [x, y] not in self.be_count4:
             self.be_count4 = []
             self.count4 = 1
@@ -202,7 +195,42 @@ class Chess:
 
         return self.count1, self.count2, self.count3, self.count4
 
+    def check_game_over(self):
+        """
+            This function be used to check game over
+            :return: the result of checking
+        """
+        if len(self.ai_press_history) < 5 or len(self.human_press_history) < 5:
+            return 0
+
+        # if human play first,check human first
+        if self.is_human_turn:
+            for history in self.human_press_history:
+                if max(self.count_the_consequent(history[0], history[1], self.human_press_history)) >= 5:
+                    self.human_win = True
+                    return 1
+            for history in self.ai_press_history:
+                if max(self.count_the_consequent(history[0], history[1], self.ai_press_history)) >= 5:
+                    self.ai_win = True
+                    return 1
+        # if ai play first,check ai first
+        else:
+            for history in self.ai_press_history:
+                if max(self.count_the_consequent(history[0], history[1], self.ai_press_history)) >= 5:
+                    self.ai_win = True
+                    return 1
+            for history in self.human_press_history:
+                if max(self.count_the_consequent(history[0], history[1], self.human_press_history)) >= 5:
+                    self.human_win = True
+                    return 1
+
+        return 0
+
     def check_able_play(self, x, y):
+        """
+            This function be used to check out of windows or be pressed once
+            :return: the result of checking
+        """
         press_history = self.human_press_history + self.ai_press_history
         for history in press_history:
             if x == history[0] and y == history[1]:
@@ -210,6 +238,9 @@ class Chess:
         return 1
 
     def show_result(self):
+        """
+            This function be used to show the match result
+        """
         text = ""
         if self.ai_win:
             text = "AI win"
@@ -218,47 +249,62 @@ class Chess:
         label = tk.Label(self.window, text=text, bg="SlateGray", font=("微软雅黑", 40))
         label.pack()
 
-    def get_score(self, x, y, is_human):
+    def get_situation(self, x, y, is_human):
+        """
+            This function be used to calc a piece's score
+            :param x: x index
+            :param y: y index
+            :param is_human: is calc human
+            :return: the result of calcing
+        """
+
         if is_human:
             own = self.human_press_history[:]
         else:
             own = self.ai_press_history[:]
+
+        # If it is calculated, it will not be calculated
         line_be_count = {r"--": False,
                          r"||": False,
                          r"\\": False,
                          r"//": False}
 
+        # calc the consequent
         count1, count2, count3, count4 = \
-            self.count_the_continue(x, y, own)
+            self.count_the_consequent(x, y, own)
 
-        # *代表自己棋子 @代表对方棋子 _代表空位
-        # 连五 (*****) √
+        # * means own piece
+        # @ means opponent piece
+        # _ means empty
+
+        # 连五 (*****)
         active_five = 0
 
-        # 活四 (_****_) √
+        # 活四 (_****_)
         active_four = 0
 
         # 冲四
-        # (_****@)√ (*_***)√ (**_**)√
+        # (_****@) (*_***) (**_**)
         sleep_four = 0
 
         # 活三
-        # (_***_)√ (_*_**_)√
+        # (_***_) (_*_**_)
         active_three = 0
 
         # 眠三
-        # (__***@)√ (_*_**@)√ (_**_*@)√ (*__**)√ (*_*_*)√ (@_***_@)√
+        # (__***@) (_*_**@) (_**_*@) (*__**) (*_*_*) (@_***_@)
         sleep_three = 0
 
         # 活二
-        # (__**__)√(_*_*_)√ (_*__*_)√
-        active_two = 0
+        # (__**__) (_*_*_) (_*__*_)
+        active_two_1 = 0
+        active_two_2 = 0
 
         # 眠二
-        # (___**@)√ (__*_*@)√ (_*__*@)√ (*___*)√
+        # (___**@) (__*_*@) (_*__*@) (*___*)
         sleep_two = 0
 
-        # 连续5个
+        # five
         if count1 == 5:
             active_five += 1
             line_be_count[r"--"] = True
@@ -272,7 +318,7 @@ class Chess:
             active_five += 1
             line_be_count[r"//"] = True
 
-        # 连续4个
+        # four
         # --
         if not line_be_count[r"--"]:
             if count1 == 4:
@@ -330,7 +376,7 @@ class Chess:
                     elif sleep4:
                         sleep_four += sleep4
 
-        # 连续3个
+        # three
         # --
         if not line_be_count[r"--"]:
             if count1 == 3:
@@ -402,7 +448,7 @@ class Chess:
                     elif sleep3:
                         sleep_three += sleep3
 
-        # 连续两个
+        # two
         # --
         if not line_be_count[r"--"]:
             if count1 == 2:
@@ -423,7 +469,7 @@ class Chess:
                     elif sleep3:
                         sleep_three += sleep3
                     elif active2:
-                        active_two += active2
+                        active_two_1 += active2
                     elif sleep2:
                         sleep_two += sleep2
         # ||
@@ -446,7 +492,7 @@ class Chess:
                     elif sleep3:
                         sleep_three += sleep3
                     elif active2:
-                        active_two += active2
+                        active_two_1 += active2
                     elif sleep2:
                         sleep_two += sleep2
         # \\
@@ -469,7 +515,7 @@ class Chess:
                     elif sleep3:
                         sleep_three += sleep3
                     elif active2:
-                        active_two += active2
+                        active_two_1 += active2
                     elif sleep2:
                         sleep_two += sleep2
         # //
@@ -492,10 +538,10 @@ class Chess:
                     elif sleep3:
                         sleep_three += sleep3
                     elif active2:
-                        active_two += active2
+                        active_two_1 += active2
                     elif sleep2:
                         sleep_two += sleep2
-        # 连续1个
+        # one
         # --
         if not line_be_count[r"--"]:
             if count1 == 1:
@@ -516,7 +562,7 @@ class Chess:
                     elif sleep3:
                         sleep_three += sleep3
                     elif active2:
-                        active_two += active2
+                        active_two_2 += active2
                     elif sleep2:
                         sleep_two += sleep2
         # ||
@@ -539,7 +585,7 @@ class Chess:
                     elif sleep3:
                         sleep_three += sleep3
                     elif active2:
-                        active_two += active2
+                        active_two_2 += active2
                     elif sleep2:
                         sleep_two += sleep2
         # \\
@@ -562,7 +608,7 @@ class Chess:
                     elif sleep3:
                         sleep_three += sleep3
                     elif active2:
-                        active_two += active2
+                        active_two_2 += active2
                     elif sleep2:
                         sleep_two += sleep2
         # //
@@ -585,20 +631,76 @@ class Chess:
                     elif sleep3:
                         sleep_three += sleep3
                     elif active2:
-                        active_two += active2
+                        active_two_2 += active2
                     elif sleep2:
                         sleep_two += sleep2
 
-        score = active_five * 15000 + \
-                active_four * 10000 + \
+        return (active_five,
+                active_four, sleep_four,
+                active_three, sleep_three,
+                active_two_1, active_two_2, sleep_two)
+
+        # score = active_five * 50000 + \
+        #         active_four * 20000 + \
+        #         sleep_four * 2500 + \
+        #         active_three * 2000 + \
+        #         sleep_three * 900 + \
+        #         active_two_1 * 800 + \
+        #         active_two_2 * 700 + \
+        #         sleep_two * 400
+
+    def get_now_step_score(self, x, y, is_human):
+        situation = self.get_situation(x, y, is_human)
+        score = situation[0] * 50000 + \
+                situation[1] * 20000 + \
+                situation[2] * 2500 + \
+                situation[3] * 2000 + \
+                situation[4] * 900 + \
+                situation[5] * 800 + \
+                situation[6] * 700 + \
+                situation[7] * 400
+        return score
+
+    def get_global_score(self,is_human):
+
+        if is_human:
+            own = self.human_press_history[:]
+        else:
+            own = self.ai_press_history[:]
+
+        active_five = 0
+        active_four = 0
+        sleep_four = 0
+        active_three = 0
+        sleep_three = 0
+        active_two_1 = 0
+        active_two_2 = 0
+        sleep_two = 0
+
+        # TODO 重复计数
+        print(own)
+        for i in range(len(own)):
+            situation = self.get_situation(own[i][0], own[i][1], is_human)
+            active_five += situation[0]
+            active_four += situation[1]
+            sleep_four += situation[2]
+            active_three += situation[3]
+            sleep_three += situation[4]
+            active_two_1 += situation[5]
+            active_two_2 += situation[6]
+            sleep_two += situation[7]
+
+        score = active_five * 50000 + \
+                active_four * 20000 + \
                 sleep_four * 2500 + \
                 active_three * 2000 + \
                 sleep_three * 900 + \
-                active_two * 800 + \
+                active_two_1 * 800 + \
+                active_two_2 * 700 + \
                 sleep_two * 400
 
-        # return active_five,active_four,sleep_four,active_three,sleep_three,active_two,sleep_two
         return score
+
     def is_block(self, x, y, history):
 
         if [x, y] in history:

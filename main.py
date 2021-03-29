@@ -1,6 +1,7 @@
+# -*- coding:utf-8 -*-
+
 from chess import Chess
 from player import Human, AI
-
 
 def main():
     chess = Chess()
@@ -16,7 +17,6 @@ def main():
                 break
         else:
             ai.calc(chess, ai.calc_depth)
-            ai.judge(chess)
             ai.play(chess)
         if chess.check_game_over():
             chess.show_result()
