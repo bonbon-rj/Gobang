@@ -3,6 +3,7 @@
 from chess import Chess
 from player import Human, AI
 
+
 def main():
     chess = Chess()
     human = Human()

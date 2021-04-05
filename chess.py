@@ -9,9 +9,27 @@ class Chess:
         self.width_offset, self.height_offset = 100, 100  # offset between chessboard and window
         self.spacing = int((self.width - 2 * self.width_offset) / (self.col - 1))  # spacing between each line
         self.mouse_press_margin = 10  # the margin of mouse pressing
+        self.ai_press_object = []
+        self.now_step_score_dict = {"active_five": 50000,
+                                    "active_four": 20000,
+                                    "sleep_four": 2500,
+                                    "active_three": 2000,
+                                    "sleep_three": 1200,
+                                    "active_two_1": 800,
+                                    "active_two_2": 700,
+                                    "sleep_two": 400}
+        self.global_score_dict = {"active_five": 45000,
+                                  "active_four": 20000,
+                                  "sleep_four": 3500,
+                                  "active_three": 3000,
+                                  "sleep_three": 1300,
+                                  "active_two_1": 1000,
+                                  "active_two_2": 800,
+                                  "sleep_two": 600}
+
         self.ai_press_history = []
         self.human_press_history = []
-        self.is_human_turn = False  # whether human play chess first
+        self.is_human_turn = True  # whether human play chess first
         self.human_win = False
         self.ai_win = False
         self.is_close = False
@@ -113,6 +131,9 @@ class Chess:
             press = False
         if press:
             self.chess.create_oval(x - 10, y - 10, x + 10, y + 10, fill=color)
+            self.ai_press_object.append(self.chess.create_oval(x - 12, y - 12, x + 12, y + 12,
+                                                               outline="#A9A9A9", width=6))
+
             self.ai_press_history.append([x, y])
             self.is_human_turn = True
 
@@ -386,7 +407,8 @@ class Chess:
                 sleep4 = self.calc_count3(x, y, press, line_type=r"--", is_human=is_human)[0]
                 active3 = self.calc_count3(x, y, press, line_type=r"--", is_human=is_human)[1]
                 sleep3 = self.calc_count3(x, y, press, line_type=r"--", is_human=is_human)[2]
-                if sleep4 or active3 or sleep3:
+                sleep2 = self.calc_count3(x, y, press, line_type=r"--", is_human=is_human)[3]
+                if sleep4 or active3 or sleep3 or sleep2:
                     line_be_count[r"--"] = True
                     if sleep4:
                         sleep_four += sleep4
@@ -394,6 +416,8 @@ class Chess:
                         active_three += active3
                     elif sleep3:
                         sleep_three += sleep3
+                    elif sleep2:
+                        sleep_two += sleep2
 
         # ||
         if not line_be_count[r"||"]:
@@ -404,7 +428,8 @@ class Chess:
                 sleep4 = self.calc_count3(x, y, press, line_type=r"||", is_human=is_human)[0]
                 active3 = self.calc_count3(x, y, press, line_type=r"||", is_human=is_human)[1]
                 sleep3 = self.calc_count3(x, y, press, line_type=r"||", is_human=is_human)[2]
-                if sleep4 or active3 or sleep3:
+                sleep2 = self.calc_count3(x, y, press, line_type=r"||", is_human=is_human)[3]
+                if sleep4 or active3 or sleep3 or sleep2:
                     line_be_count[r"||"] = True
                     if sleep4:
                         sleep_four += sleep4
@@ -412,7 +437,8 @@ class Chess:
                         active_three += active3
                     elif sleep3:
                         sleep_three += sleep3
-
+                    elif sleep2:
+                        sleep_two += sleep2
         # \\
         if not line_be_count[r"\\"]:
             if count3 == 3:
@@ -422,7 +448,8 @@ class Chess:
                 sleep4 = self.calc_count3(x, y, press, line_type=r"\\", is_human=is_human)[0]
                 active3 = self.calc_count3(x, y, press, line_type=r"\\", is_human=is_human)[1]
                 sleep3 = self.calc_count3(x, y, press, line_type=r"\\", is_human=is_human)[2]
-                if sleep4 or active3 or sleep3:
+                sleep2 = self.calc_count3(x, y, press, line_type=r"\\", is_human=is_human)[3]
+                if sleep4 or active3 or sleep3 or sleep2:
                     line_be_count[r"\\"] = True
                     if sleep4:
                         sleep_four += sleep4
@@ -430,6 +457,8 @@ class Chess:
                         active_three += active3
                     elif sleep3:
                         sleep_three += sleep3
+                    elif sleep2:
+                        sleep_two += sleep2
         # //
         if not line_be_count[r"//"]:
             if count4 == 3:
@@ -439,7 +468,8 @@ class Chess:
                 sleep4 = self.calc_count3(x, y, press, line_type=r"//", is_human=is_human)[0]
                 active3 = self.calc_count3(x, y, press, line_type=r"//", is_human=is_human)[1]
                 sleep3 = self.calc_count3(x, y, press, line_type=r"//", is_human=is_human)[2]
-                if sleep4 or active3 or sleep3:
+                sleep2 = self.calc_count3(x, y, press, line_type=r"//", is_human=is_human)[3]
+                if sleep4 or active3 or sleep3 or sleep2:
                     line_be_count[r"//"] = True
                     if sleep4:
                         sleep_four += sleep4
@@ -447,6 +477,8 @@ class Chess:
                         active_three += active3
                     elif sleep3:
                         sleep_three += sleep3
+                    elif sleep2:
+                        sleep_two += sleep2
 
         # two
         # --
@@ -644,24 +676,24 @@ class Chess:
         #         active_four * 20000 + \
         #         sleep_four * 2500 + \
         #         active_three * 2000 + \
-        #         sleep_three * 900 + \
+        #         sleep_three * 1200 + \
         #         active_two_1 * 800 + \
         #         active_two_2 * 700 + \
         #         sleep_two * 400
 
     def get_now_step_score(self, x, y, is_human):
         situation = self.get_situation(x, y, is_human)
-        score = situation[0] * 50000 + \
-                situation[1] * 20000 + \
-                situation[2] * 2500 + \
-                situation[3] * 2000 + \
-                situation[4] * 900 + \
-                situation[5] * 800 + \
-                situation[6] * 700 + \
-                situation[7] * 400
+        score = situation[0] * self.now_step_score_dict["active_five"] + \
+                situation[1] * self.now_step_score_dict["active_four"] + \
+                situation[2] * self.now_step_score_dict["sleep_four"] + \
+                situation[3] * self.now_step_score_dict["active_three"] + \
+                situation[4] * self.now_step_score_dict["sleep_three"] + \
+                situation[5] * self.now_step_score_dict["active_two_1"] + \
+                situation[6] * self.now_step_score_dict["active_two_2"] + \
+                situation[7] * self.now_step_score_dict["sleep_two"]
         return score
 
-    def get_global_score(self,is_human):
+    def get_global_score(self, is_human):
 
         if is_human:
             own = self.human_press_history[:]
@@ -678,7 +710,7 @@ class Chess:
         sleep_two = 0
 
         # TODO 重复计数
-        print(own)
+
         for i in range(len(own)):
             situation = self.get_situation(own[i][0], own[i][1], is_human)
             active_five += situation[0]
@@ -690,14 +722,43 @@ class Chess:
             active_two_2 += situation[6]
             sleep_two += situation[7]
 
-        score = active_five * 50000 + \
-                active_four * 20000 + \
-                sleep_four * 2500 + \
-                active_three * 2000 + \
-                sleep_three * 900 + \
-                active_two_1 * 800 + \
-                active_two_2 * 700 + \
-                sleep_two * 400
+        # print(own,active_five,
+        #     active_four,
+        #     sleep_four,
+        #     active_three,
+        #     sleep_three,
+        #     active_two_1,
+        #     active_two_2,
+        #     sleep_two)
+        score = active_five * self.global_score_dict["active_five"] / 5 + \
+                active_four * self.global_score_dict["active_four"] / 4 + \
+                sleep_four * self.global_score_dict["sleep_four"] / 4 + \
+                active_three * self.global_score_dict["active_three"] / 3 + \
+                sleep_three * self.global_score_dict["sleep_three"] / 3 + \
+                active_two_1 * self.global_score_dict["active_two_1"] / 2 + \
+                active_two_2 * self.global_score_dict["active_two_2"] / 2 + \
+                sleep_two * self.global_score_dict["sleep_two"] / 2
+
+        # # 冲四
+        # # (_****@) (*_***) (**_**)
+        # sleep_four = 0
+        #
+        # # 活三
+        # # (_***_) (_*_**_)
+        # active_three = 0
+        #
+        # # 眠三
+        # # (__***@) (_*_**@) (_**_*@) (*__**) (*_*_*) (@_***_@)
+        # sleep_three = 0
+        #
+        # # 活二
+        # # (__**__) (_*_*_) (_*__*_)
+        # active_two_1 = 0
+        # active_two_2 = 0
+        #
+        # # 眠二
+        # # (___**@) (__*_*@) (_*__*@) (*___*)
+        # sleep_two = 0
 
         return score
 
@@ -750,7 +811,7 @@ class Chess:
         sleep_four = 0
         active_three = 0
         sleep_three = 0
-
+        sleep_two = 0
         if is_human:
             own = self.human_press_history[:]
             opponent = self.ai_press_history[:]
@@ -784,8 +845,16 @@ class Chess:
                 if not self.is_block(index_tail_first[0], index_tail_first[1], opponent):
                     if self.is_block(index_tail_second[0], index_tail_second[1], opponent):
                         sleep_three += 1
-
-        return sleep_four, active_three, sleep_three
+        # (@_***@)
+        if not self.is_block(index_head_first[0], index_head_first[1], opponent):
+            if self.is_block(index_head_second[0], index_head_second[1], opponent):
+                if self.is_block(index_tail_first[0], index_tail_first[1], opponent):
+                    sleep_two += 1
+        if not self.is_block(index_tail_first[0], index_tail_first[1], opponent):
+            if self.is_block(index_tail_second[0], index_tail_second[1], opponent):
+                if self.is_block(index_head_first[0], index_head_first[1], opponent):
+                    sleep_two += 1
+        return sleep_four, active_three, sleep_three, sleep_two
 
     def calc_count2(self, x, y, press, line_type, is_human):
         index_head_first = self.line_type2index(x, y, press, line_type, is_head=True, num=1)
@@ -878,6 +947,18 @@ class Chess:
                     if self.is_block(index_head_first[0], index_head_first[1], opponent):
                         sleep_two += 1
 
+        # (__**_@)
+        if not self.is_block(index_head_first[0], index_head_first[1], opponent):
+            if not self.is_block(index_head_second[0], index_head_second[1], opponent):
+                if not self.is_block(index_tail_first[0], index_tail_first[1], opponent):
+                    if self.is_block(index_tail_second[0], index_tail_second[1], opponent):
+                        active_two += 1
+        if not self.is_block(index_tail_first[0], index_tail_first[1], opponent):
+            if not self.is_block(index_tail_second[0], index_tail_second[1], opponent):
+                if not self.is_block(index_head_first[0], index_head_first[1], opponent):
+                    if self.is_block(index_head_second[0], index_head_second[1], opponent):
+                        active_two += 1
+
         return (sleep_four,
                 active_three, sleep_three,
                 active_two, sleep_two)
@@ -917,6 +998,12 @@ class Chess:
                 if not self.is_block(index_tail_third[0], index_tail_third[1], opponent):
                     if [index_tail_fourth[0], index_tail_fourth[1]] in own:
                         sleep_three += 1
+        if not self.is_block(index_tail_first[0], index_tail_first[1], opponent):
+            if [index_tail_second[0], index_tail_second[1]] in own:
+                if not self.is_block(index_head_first[0], index_head_first[1], opponent):
+                    if [index_head_second[0], index_head_second[1]] in own:
+                        sleep_three += 1
+
         # (_*_*_)
         if not self.is_block(index_tail_first[0], index_tail_first[1], opponent):
             if not self.is_block(index_head_first[0], index_head_first[1], opponent):
@@ -955,6 +1042,18 @@ class Chess:
                     if not self.is_block(index_tail_third[0], index_tail_third[1], opponent):
                         if not self.is_block(index_tail_fourth[0], index_tail_fourth[1], opponent):
                             sleep_two += 1
+        if not self.is_block(index_head_first[0], index_head_first[1], opponent):
+            if not self.is_block(index_head_second[0], index_head_second[1], opponent):
+                if not self.is_block(index_tail_first[0], index_tail_first[1], opponent):
+                    if [index_tail_second[0], index_tail_second[1]] in own:
+                        if self.is_block(index_tail_third[0], index_tail_third[1], opponent):
+                            sleep_two += 1
+        if not self.is_block(index_head_first[0], index_head_first[1], opponent):
+            if [index_head_second[0], index_head_second[1]] in own:
+                if self.is_block(index_head_third[0], index_head_third[1], opponent):
+                    if not self.is_block(index_tail_first[0], index_tail_first[1], opponent):
+                        if not self.is_block(index_tail_second[0], index_tail_second[1], opponent):
+                            sleep_two += 1
 
         # (_*__*@)
         if self.is_block(index_tail_first[0], index_tail_first[1], opponent):
@@ -969,6 +1068,18 @@ class Chess:
                 if not self.is_block(index_tail_second[0], index_tail_second[1], opponent):
                     if [index_tail_third[0], index_tail_third[1]] in own:
                         if not self.is_block(index_tail_fourth[0], index_tail_fourth[1], opponent):
+                            sleep_two += 1
+        if not self.is_block(index_head_first[0], index_head_first[1], opponent):
+            if not self.is_block(index_tail_first[0], index_tail_first[1], opponent):
+                if not self.is_block(index_tail_second[0], index_tail_second[1], opponent):
+                    if [index_tail_third[0], index_tail_third[1]] in own:
+                        if self.is_block(index_tail_fourth[0], index_tail_fourth[1], opponent):
+                            sleep_two += 1
+        if not self.is_block(index_tail_first[0], index_tail_first[1], opponent):
+            if not self.is_block(index_head_first[0], index_head_first[1], opponent):
+                if not self.is_block(index_head_second[0], index_head_second[1], opponent):
+                    if [index_head_third[0], index_head_third[1]] in own:
+                        if self.is_block(index_head_fourth[0], index_head_fourth[1], opponent):
                             sleep_two += 1
 
         # (*___*)
