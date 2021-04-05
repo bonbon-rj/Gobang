@@ -8,8 +8,6 @@ class Human:
 
     def play(self, chess):
         try:
-            if len(chess.ai_press_object) >1:
-                chess.chess.delete(chess.ai_press_object[-2])
             chess.chess.bind("<Button-1>", lambda event: chess.human_press_mouse(event, color=self.color))
 
         except _tkinter.TclError:
@@ -173,4 +171,6 @@ class AI:
                         self.bottom_score = []
 
     def play(self, chess):
+        if len(chess.ai_press_object) != 0:
+            chess.chess.delete(chess.ai_press_object[-1])
         chess.ai_show_piece(self.x, self.y, self.color)

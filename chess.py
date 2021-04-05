@@ -20,8 +20,8 @@ class Chess:
                                     "sleep_two": 400}
         self.global_score_dict = {"active_five": 45000,
                                   "active_four": 20000,
-                                  "sleep_four": 3500,
-                                  "active_three": 3000,
+                                  "sleep_four": 2500,
+                                  "active_three": 2000,
                                   "sleep_three": 1300,
                                   "active_two_1": 1000,
                                   "active_two_2": 800,
