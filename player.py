@@ -1,5 +1,5 @@
 import _tkinter
-import math
+
 
 
 class Human:
@@ -15,23 +15,21 @@ class Human:
 
 
 class AI:
-    def __init__(self):
+    def __init__(self,depth):
         self.color = "white"
         self.x = 0
         self.y = 0
-        self.calc_depth = 1
+        self.calc_depth = depth
         #  TODO if depth %2 ==0
         self.going_step = []
         self.bottom_score = []
         self.calc_num = 3  # 每一步棋计算最优前
 
-        self.version = 1
-        #  0 :Fast Think Current Situation simply
-        #  1 :Slow Think Future Situation recursion
+
 
     def calc(self, chess, n):
 
-        if self.version == 0:
+        if chess.version == 0:
             if len(chess.human_press_history) == 0:
                 self.x = 450
                 self.y = 450
@@ -45,11 +43,13 @@ class AI:
                                 ai_score = chess.get_now_step_score(col, row, False)
                                 human_score = chess.get_now_step_score(col, row, True)
                                 result.append([ai_score + human_score, col, row])
+                print("ai:", result)
                 ai_result = max(result, key=lambda s: s[0])
+
                 self.x = ai_result[1]
                 self.y = ai_result[2]
 
-        elif self.version == 1:
+        elif chess.version == 1:
             if len(chess.human_press_history) == 0:
                 self.x = 450
                 self.y = 450
@@ -69,11 +69,17 @@ class AI:
                                                  chess.spacing):
                                     if [col, row] not in chess.human_press_history:
                                         if [col, row] not in chess.ai_press_history:
-                                            human_score_now = chess.get_global_score(True)
+
+                                            # future
                                             chess.ai_press_history.append([col, row])
-                                            ai_score = chess.get_global_score(False)
+                                            ai_score_future = chess.get_global_score(False)
                                             human_score_future = chess.get_global_score(True)
                                             chess.ai_press_history.pop()
+                                            # if int(ai_score_future-5*human_score_future) ==-8700:
+                                            #     print("1",ai_score_future,human_score_future)
+                                            # if int(ai_score_future-5*human_score_future) ==-8900:
+                                            #     print("2",ai_score_future,human_score_future)
+
                                             # chess.ai_press_history.append([col, row])
                                             # ai_score = chess.get_global_score(False)
                                             # chess.ai_press_history.pop()
@@ -81,16 +87,17 @@ class AI:
                                             # human_score = chess.get_global_score(True)
                                             # chess.human_press_history.pop()
 
-                                            ai_result.append([ai_score + 3*(human_score_now-human_score_future), col, row])
+                                            ai_result.append([ai_score_future-5*human_score_future,
+                                                              col, row])
                             ai_result = sorted(ai_result, key=lambda s: s[0], reverse=True)
-                            print("test:", ai_result)
+                            #print("test:", ai_result)
                             cnt = 0
                             for i in range(len(ai_result)):
                                 final_result.append(ai_result[i])
                                 cnt += 1
                                 if cnt >= self.calc_num:
                                     break
-                            # print("ai:", final_result)
+                            print("ai:", final_result)
                             for i in range(len(final_result)):
                                 chess.ai_press_history.append([final_result[i][1], final_result[i][2]])
                                 self.calc(chess, n - 1)
@@ -109,12 +116,19 @@ class AI:
                                                  chess.spacing):
                                     if [col, row] not in chess.human_press_history:
                                         if [col, row] not in chess.ai_press_history:
-                                            chess.human_press_history.append([col, row])
-                                            ai_score = chess.get_global_score(False)
-                                            human_score = chess.get_global_score(True)
-                                            chess.human_press_history.pop()
 
-                                            human_result.append([ai_score - 10 * human_score, col, row])
+
+                                            # future
+                                            chess.human_press_history.append([col, row])
+                                            ai_score_future = chess.get_global_score(False)
+                                            human_score_future = chess.get_global_score(True)
+                                            chess.human_press_history.pop()
+                                            # chess.human_press_history.append([col, row])
+                                            # ai_score = chess.get_global_score(False)
+                                            # human_score = chess.get_global_score(True)
+                                            # chess.human_press_history.pop()
+                                            human_result.append([5*ai_score_future-human_score_future,
+                                                              col, row])
                             human_result = sorted(human_result, key=lambda s: s[0], reverse=False)
                             cnt = 0
                             for i in range(len(human_result)):
@@ -135,9 +149,10 @@ class AI:
                         step = 0
                         length = self.calc_depth
                         while length > 0:
+                            # max
                             if not ((self.calc_depth - length) % 2):
                                 temp = []
-                                max1 = self.bottom_score[0][0]
+                                max1 = float("-inf")
                                 # TODO has problem if =0
                                 for i in range(len(self.bottom_score)):
                                     if self.bottom_score[i][0] > max1:
@@ -145,27 +160,27 @@ class AI:
                                         step = i
                                     if not (i + 1) % self.calc_num:
                                         temp.append([max1, step])
-                                        max1 = self.bottom_score[0][0]
+                                        max1 = float("-inf")
                                 self.bottom_score = temp[:]
+
+                            # min
                             else:
                                 temp = []
-                                min1 = self.bottom_score[0][0]
+                                min1 = float("inf")
                                 for i in range(len(self.bottom_score)):
                                     if self.bottom_score[i][0] < min1:
                                         min1 = self.bottom_score[i][0]
                                         step = i
                                     if not (i + 1) % self.calc_num:
                                         temp.append([min1, step])
-                                        min1 = self.bottom_score[0][0]
+                                        min1 = float("inf")
                                 self.bottom_score = temp[:]
 
                             length -= 1
-                            # print(self.bottom_score)
 
-                        # print(self.going_step)
-
-                        self.x = self.going_step[math.floor(pow(step + 1, 1 / self.calc_depth)) - 1][1]
-                        self.y = self.going_step[math.floor(pow(step + 1, 1 / self.calc_depth)) - 1][2]
+                        # self.x = self.going_step[math.floor(pow(step + 1, 1 / self.calc_depth))][1]
+                        self.x = self.going_step[step][1]
+                        self.y = self.going_step[step][2]
 
                         self.going_step = []
                         self.bottom_score = []
