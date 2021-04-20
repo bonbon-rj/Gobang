@@ -20,8 +20,8 @@ class Chess:
                                     "sleep_two": 400}
         self.global_score_dict = {"active_five": 50000,
                                     "active_four": 20000,
-                                    "sleep_four": 2500,
-                                    "active_three": 2000,
+                                    "sleep_four": 3500,
+                                    "active_three": 3000,
                                     "sleep_three": 1200,
                                     "active_two_1": 800,
                                     "active_two_2": 700,
@@ -1171,56 +1171,62 @@ class Chess:
 
         # 由于递归版本考虑到全局 对于对方单子fang shou考虑不全 需要另外添加
         if self.version == 1:
-            # (*@)
+            # (*@_)
             if self.is_block(index_head_first[0], index_head_first[1], opponent):
-                sleep_two += 1
+                if not self.is_block(index_head_second[0], index_head_second[1], opponent):
+                    sleep_two += 0.2
             if self.is_block(index_tail_first[0], index_tail_first[1], opponent):
-                sleep_two += 1
+                if not self.is_block(index_tail_second[0], index_tail_second[1], opponent):
+                    sleep_two += 0.2
 
-            # (*@@)
+            # (*@@_)
             if self.is_block(index_head_first[0], index_head_first[1], opponent):
                 if self.is_block(index_head_second[0], index_head_second[1], opponent):
-                    sleep_two += 1
+                    if not self.is_block(index_head_third[0], index_head_third[1], opponent):
+                        sleep_two += 0.5
             if self.is_block(index_tail_first[0], index_tail_first[1], opponent):
                 if self.is_block(index_tail_second[0], index_tail_second[1], opponent):
-                    sleep_two += 1
+                    if self.is_block(index_tail_third[0], index_tail_third[1], opponent):
+                        sleep_two += 0.5
 
             # (*@@@)
             if self.is_block(index_head_first[0], index_head_first[1], opponent):
                 if self.is_block(index_head_second[0], index_head_second[1], opponent):
                     if self.is_block(index_head_third[0], index_head_third[1], opponent):
-                        sleep_three += 1
+                        if not self.is_block(index_head_fourth[0], index_head_fourth[1], opponent):
+                            sleep_three += 1.2
             if self.is_block(index_tail_first[0], index_tail_first[1], opponent):
                 if self.is_block(index_tail_second[0], index_tail_second[1], opponent):
                     if self.is_block(index_tail_third[0], index_tail_third[1], opponent):
-                        sleep_three += 1
+                        if not self.is_block(index_tail_fourth[0], index_tail_fourth[1], opponent):
+                            sleep_three += 1.2
 
             # (@*@)
             if self.is_block(index_head_first[0], index_head_first[1], opponent):
                 if self.is_block(index_tail_first[0], index_tail_first[1], opponent):
-                    sleep_two += 1
+                    sleep_two += 0.5
 
             # (@*@@)
             if self.is_block(index_head_first[0], index_head_first[1], opponent):
                 if self.is_block(index_tail_first[0], index_tail_first[1], opponent):
                     if self.is_block(index_tail_second[0], index_tail_second[1], opponent):
-                        sleep_three += 1
+                        sleep_three += 0.5
             if self.is_block(index_tail_first[0], index_tail_first[1], opponent):
                 if self.is_block(index_head_first[0], index_head_first[1], opponent):
                     if self.is_block(index_head_second[0], index_head_second[1], opponent):
-                        sleep_three += 1
+                        sleep_three += 0.5
 
             # (@@*@@)
             if self.is_block(index_head_first[0], index_head_first[1], opponent):
                 if self.is_block(index_head_second[0], index_head_second[1], opponent):
                     if self.is_block(index_tail_first[0], index_tail_first[1], opponent):
                         if self.is_block(index_tail_second[0], index_tail_second[1], opponent):
-                            sleep_four += 1
+                            sleep_four += 0.5
             if self.is_block(index_tail_first[0], index_tail_first[1], opponent):
                 if self.is_block(index_tail_second[0], index_tail_second[1], opponent):
                     if self.is_block(index_head_first[0], index_head_first[1], opponent):
                         if self.is_block(index_head_second[0], index_head_second[1], opponent):
-                            sleep_three += 1
+                            sleep_four += 0.5
 
 
         return (sleep_four,
