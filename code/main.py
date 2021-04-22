@@ -5,7 +5,7 @@ from player import Human, AI
 
 
 def main():
-    chess = Chess(version=1)
+    chess = Chess(version=0)
     human = Human()
     ai = AI(depth=3)
 

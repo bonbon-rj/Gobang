@@ -86,6 +86,11 @@ class Chess:
 
         # place
         self.chess.place(x=0, y=0, anchor="nw")
+	
+	# # label
+        label = tk.Label(self.window, text="Designed by bonbon", width=20, height=1, anchor='nw', bg="#CDC0B0")
+        label.place(x=self.width-140, y=5, anchor='nw')
+
 
     def human_press_mouse(self, event, color):
         """

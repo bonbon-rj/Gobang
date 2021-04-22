@@ -43,7 +43,7 @@ class AI:
                                 ai_score = chess.get_now_step_score(col, row, False)
                                 human_score = chess.get_now_step_score(col, row, True)
                                 result.append([ai_score + human_score, col, row])
-                print("ai:", result)
+                # print("ai:", result)
                 ai_result = max(result, key=lambda s: s[0])
 
                 self.x = ai_result[1]
