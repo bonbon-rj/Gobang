@@ -2,7 +2,7 @@ import tkinter as tk
 
 
 class Chess:
-    def __init__(self,version):
+    def __init__(self, version, human_first):
         # # param
         self.row, self.col = 15, 15
         self.width, self.height = 900, 900  # window size
@@ -19,21 +19,21 @@ class Chess:
                                     "active_two_2": 700,
                                     "sleep_two": 400}
         self.global_score_dict = {"active_five": 50000,
-                                    "active_four": 20000,
-                                    "sleep_four": 3500,
-                                    "active_three": 3000,
-                                    "sleep_three": 1200,
-                                    "active_two_1": 800,
-                                    "active_two_2": 700,
-                                    "sleep_two": 400}
+                                  "active_four": 20000,
+                                  "sleep_four": 3500,
+                                  "active_three": 3000,
+                                  "sleep_three": 1200,
+                                  "active_two_1": 800,
+                                  "active_two_2": 700,
+                                  "sleep_two": 400}
 
+        #  version 0 :Fast Think Current Situation simply
+        #  version 1 :Slow Think Future Situation recursion
         self.version = version
-        #  0 :Fast Think Current Situation simply
-        #  1 :Slow Think Future Situation recursion
 
         self.ai_press_history = []
         self.human_press_history = []
-        self.is_human_turn = True  # whether human play chess first
+        self.is_human_turn = human_first  # whether human play chess first
         self.human_win = False
         self.ai_win = False
         self.is_close = False
@@ -55,8 +55,7 @@ class Chess:
         self.window.title("Gobang")
         self.window.geometry(str(self.width) + "x" + str(self.height))
 
-        # # canvas
-        # fill the background
+        # # canvas to fill the background
         self.chess = tk.Canvas(self.window, bg="#CDC0B0", width=self.width, height=self.height)
 
         # draw the chessboard
@@ -86,11 +85,10 @@ class Chess:
 
         # place
         self.chess.place(x=0, y=0, anchor="nw")
-	
-	# # label
-        label = tk.Label(self.window, text="Designed by bonbon", width=20, height=1, anchor='nw', bg="#CDC0B0")
-        label.place(x=self.width-140, y=5, anchor='nw')
 
+        # # label
+        label = tk.Label(self.window, text="Designed by bonbon", width=20, height=1, anchor='nw', bg="#CDC0B0")
+        label.place(x=self.width - 140, y=5, anchor='nw')
 
     def human_press_mouse(self, event, color):
         """
@@ -103,6 +101,7 @@ class Chess:
                 # Leave a margin to press mouse
                 x_remainder, y_remainder = event.x % self.spacing, event.y % self.spacing
                 x_index, y_index = -1, -1
+
                 # right
                 if x_remainder < self.mouse_press_margin:
                     x_index = int(event.x - x_remainder)
@@ -110,6 +109,7 @@ class Chess:
                         y_index = int(event.y - y_remainder)
                     if y_remainder > self.spacing - self.mouse_press_margin:
                         y_index = int(event.y + (self.spacing - y_remainder))
+
                 # left
                 if x_remainder > self.spacing - self.mouse_press_margin:
                     x_index = int(event.x + (self.spacing - x_remainder))
@@ -141,7 +141,7 @@ class Chess:
         if press:
             self.chess.create_oval(x - 10, y - 10, x + 10, y + 10, fill=color)
             self.ai_press_object.append(self.chess.create_oval(x - 12, y - 12, x + 12, y + 12,
-                                                                  outline="#A9A9A9", width=6))
+                                                               outline="#A9A9A9", width=6))
 
             self.ai_press_history.append([x, y])
             self.is_human_turn = True
@@ -243,6 +243,7 @@ class Chess:
                 if max(self.count_the_consequent(history[0], history[1], self.ai_press_history)) >= 5:
                     self.ai_win = True
                     return 1
+
         # if ai play first,check ai first
         else:
             for history in self.ai_press_history:
@@ -285,7 +286,7 @@ class Chess:
             :param x: x index
             :param y: y index
             :param is_human: calc human or not
-            :return: the result of calcing
+            :return: the result of calculate
         """
 
         if is_human:
@@ -681,16 +682,14 @@ class Chess:
                 active_three, sleep_three,
                 active_two_1, active_two_2, sleep_two)
 
-        # score = active_five * 50000 + \
-        #         active_four * 20000 + \
-        #         sleep_four * 2500 + \
-        #         active_three * 2000 + \
-        #         sleep_three * 1200 + \
-        #         active_two_1 * 800 + \
-        #         active_two_2 * 700 + \
-        #         sleep_two * 400
-
     def get_now_step_score(self, x, y, is_human):
+        """
+            This function be used to get the now step's score
+            :param x: x index
+            :param y: y index
+            :param is_human: get human's score or not
+            :return: the score of calculate
+        """
         situation = self.get_situation(x, y, is_human)
         score = situation[0] * self.now_step_score_dict["active_five"] + \
                 situation[1] * self.now_step_score_dict["active_four"] + \
@@ -703,6 +702,11 @@ class Chess:
         return score
 
     def get_global_score(self, is_human):
+        """
+            This function be used to get the global score
+            :param is_human: get human's score or not
+            :return: the score of calculate
+        """
 
         if is_human:
             own = self.human_press_history[:]
@@ -718,7 +722,6 @@ class Chess:
         active_two_2 = 0
         sleep_two = 0
 
-        # TODO 重复计数
         for i in range(len(own)):
             situation = self.get_situation(own[i][0], own[i][1], is_human)
             active_five += situation[0]
@@ -730,8 +733,6 @@ class Chess:
             active_two_2 += situation[6]
             sleep_two += situation[7]
 
-
-
         score = active_five * self.global_score_dict["active_five"] / 5 + \
                 active_four * self.global_score_dict["active_four"] / 4 + \
                 sleep_four * self.global_score_dict["sleep_four"] / 4 + \
@@ -740,39 +741,17 @@ class Chess:
                 active_two_1 * self.global_score_dict["active_two_1"] / 2 + \
                 active_two_2 * self.global_score_dict["active_two_2"] / 2 + \
                 sleep_two * self.global_score_dict["sleep_two"] / 2
-        # if score ==1100:
-        #     print("ai",active_five,active_four,sleep_four,active_three,sleep_three,active_two_1,active_two_2,sleep_two)
-        # if score ==2200:
-        #     print("human",active_five,active_four,sleep_four,active_three,sleep_three,active_two_1,active_two_2,sleep_two)
-        # if score ==1300:
-        #     print("ai",active_five,active_four,sleep_four,active_three,sleep_three,active_two_1,active_two_2,sleep_two)
-        # if score ==2400:
-        #     print("human",active_five,active_four,sleep_four,active_three,sleep_three,active_two_1,active_two_2,sleep_two)
-
-        # # 冲四
-        # # (_****@) (*_***) (**_**)
-        # sleep_four = 0
-        #
-        # # 活三
-        # # (_***_) (_*_**_)
-        # active_three = 0
-        #
-        # # 眠三
-        # # (__***@) (_*_**@) (_**_*@) (*__**) (*_*_*) (@_***_@)
-        # sleep_three = 0
-        #
-        # # 活二
-        # # (__**__) (_*_*_) (_*__*_)
-        # active_two_1 = 0
-        # active_two_2 = 0
-        #
-        # # 眠二
-        # # (___**@) (__*_*@) (_*__*@) (*___*)
-        # sleep_two = 0
 
         return score
 
     def is_block(self, x, y, history):
+        """
+            This function be used to determine whether the coordinates are blocked
+            :param x: x index
+            :param y: y index
+            :param history: the press history of determine
+            :return: the result
+        """
 
         if [x, y] in history:
             return 1
@@ -783,6 +762,14 @@ class Chess:
         return 0
 
     def calc_count4(self, x, y, press, line_type, is_human):
+        """
+            This function be used to calculate 4 pieces
+            :param x: x index
+            :param y: y index
+            :param press: be press history
+            :param is_human: whether to calculate human score
+            :return: the result
+        """
         index_head_first = self.line_type2index(x, y, press, line_type, is_head=True, num=1)
         index_tail_first = self.line_type2index(x, y, press, line_type, is_head=False, num=1)
 
@@ -812,7 +799,14 @@ class Chess:
         return active_four, sleep_four
 
     def calc_count3(self, x, y, press, line_type, is_human):
-
+        """
+            This function be used to calculate 3 pieces
+            :param x: x index
+            :param y: y index
+            :param press: be press history
+            :param is_human: whether to calculate human score
+            :return: the result
+        """
         index_head_first = self.line_type2index(x, y, press, line_type, is_head=True, num=1)
         index_tail_first = self.line_type2index(x, y, press, line_type, is_head=False, num=1)
         index_head_second = self.line_type2index(x, y, press, line_type, is_head=True, num=2)
@@ -872,6 +866,14 @@ class Chess:
         return sleep_four, active_three, sleep_three, sleep_two
 
     def calc_count2(self, x, y, press, line_type, is_human):
+        """
+            This function be used to calculate 2 pieces
+            :param x: x index
+            :param y: y index
+            :param press: be press history
+            :param is_human: whether to calculate human score
+            :return: the result
+        """
         index_head_first = self.line_type2index(x, y, press, line_type, is_head=True, num=1)
         index_tail_first = self.line_type2index(x, y, press, line_type, is_head=False, num=1)
         index_head_second = self.line_type2index(x, y, press, line_type, is_head=True, num=2)
@@ -979,6 +981,14 @@ class Chess:
                 active_two, sleep_two)
 
     def calc_count1(self, x, y, press, line_type, is_human):
+        """
+            This function be used to calculate 1 piece
+            :param x: x index
+            :param y: y index
+            :param press: be press history
+            :param is_human: whether to calculate human score
+            :return: the result
+        """
 
         index_head_first = self.line_type2index(x, y, press, line_type, is_head=True, num=1)
         index_tail_first = self.line_type2index(x, y, press, line_type, is_head=False, num=1)
@@ -1174,7 +1184,8 @@ class Chess:
                     if [index_tail_fourth[0], index_tail_fourth[1]] in own:
                         sleep_three += 1
 
-        # 由于递归版本考虑到全局 对于对方单子fang shou考虑不全 需要另外添加
+        # Since the recursive version takes into account the global situation,
+        # the opponent's single defense is not fully considered, and it needs to be added
         if self.version == 1:
             # (*@_)
             if self.is_block(index_head_first[0], index_head_first[1], opponent):
@@ -1194,7 +1205,7 @@ class Chess:
                     if self.is_block(index_tail_third[0], index_tail_third[1], opponent):
                         sleep_two += 0.5
 
-            # (*@@@)
+            # (*@@@_)
             if self.is_block(index_head_first[0], index_head_first[1], opponent):
                 if self.is_block(index_head_second[0], index_head_second[1], opponent):
                     if self.is_block(index_head_third[0], index_head_third[1], opponent):
@@ -1207,38 +1218,47 @@ class Chess:
                             sleep_three += 1.2
 
             # (@*@)
-            if self.is_block(index_head_first[0], index_head_first[1], opponent):
-                if self.is_block(index_tail_first[0], index_tail_first[1], opponent):
+            if self.is_defense(index_head_first[0], index_head_first[1], opponent):
+                if self.is_defense(index_tail_first[0], index_tail_first[1], opponent):
                     sleep_two += 0.5
 
             # (@*@@)
-            if self.is_block(index_head_first[0], index_head_first[1], opponent):
-                if self.is_block(index_tail_first[0], index_tail_first[1], opponent):
-                    if self.is_block(index_tail_second[0], index_tail_second[1], opponent):
+            if self.is_defense(index_head_first[0], index_head_first[1], opponent):
+                if self.is_defense(index_tail_first[0], index_tail_first[1], opponent):
+                    if self.is_defense(index_tail_second[0], index_tail_second[1], opponent):
                         sleep_three += 0.5
-            if self.is_block(index_tail_first[0], index_tail_first[1], opponent):
-                if self.is_block(index_head_first[0], index_head_first[1], opponent):
-                    if self.is_block(index_head_second[0], index_head_second[1], opponent):
+            if self.is_defense(index_tail_first[0], index_tail_first[1], opponent):
+                if self.is_defense(index_head_first[0], index_head_first[1], opponent):
+                    if self.is_defense(index_head_second[0], index_head_second[1], opponent):
                         sleep_three += 0.5
 
             # (@@*@@)
-            if self.is_block(index_head_first[0], index_head_first[1], opponent):
-                if self.is_block(index_head_second[0], index_head_second[1], opponent):
-                    if self.is_block(index_tail_first[0], index_tail_first[1], opponent):
-                        if self.is_block(index_tail_second[0], index_tail_second[1], opponent):
+            if self.is_defense(index_head_first[0], index_head_first[1], opponent):
+                if self.is_defense(index_head_second[0], index_head_second[1], opponent):
+                    if self.is_defense(index_tail_first[0], index_tail_first[1], opponent):
+                        if self.is_defense(index_tail_second[0], index_tail_second[1], opponent):
                             sleep_four += 0.5
-            if self.is_block(index_tail_first[0], index_tail_first[1], opponent):
-                if self.is_block(index_tail_second[0], index_tail_second[1], opponent):
-                    if self.is_block(index_head_first[0], index_head_first[1], opponent):
-                        if self.is_block(index_head_second[0], index_head_second[1], opponent):
+            if self.is_defense(index_tail_first[0], index_tail_first[1], opponent):
+                if self.is_defense(index_tail_second[0], index_tail_second[1], opponent):
+                    if self.is_defense(index_head_first[0], index_head_first[1], opponent):
+                        if self.is_defense(index_head_second[0], index_head_second[1], opponent):
                             sleep_four += 0.5
-
 
         return (sleep_four,
                 active_three, sleep_three,
                 active_two, sleep_two)
 
     def line_type2index(self, x, y, press, line_type, is_head, num):
+        """
+            This function be used to change line type to index
+            :param x: x index
+            :param y: y index
+            :param press: be press history
+            :param line_type: the type of line
+            :param is_head: whether it is head
+            :param num: the number
+            :return: the index
+        """
         index = []
         if line_type == r"--":
             if is_head:
@@ -1265,3 +1285,17 @@ class Chess:
                 index = [press[-1][0] + num * self.spacing, press[-1][1] - num * self.spacing]
 
         return index
+
+    @staticmethod
+    # Different from is_block
+    def is_defense(x, y, history):
+        """
+            This function be used to determine whether the opposing piece is on the coordinate
+            :param x: x index
+            :param y: y index
+            :param history: the history of judging
+            :return: the result
+        """
+        if [x, y] in history:
+            return 1
+        return 0

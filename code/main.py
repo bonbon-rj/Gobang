@@ -1,11 +1,11 @@
 # -*- coding:utf-8 -*-
-
 from chess import Chess
 from player import Human, AI
 
 
 def main():
-    chess = Chess(version=0)
+    # init object
+    chess = Chess(version=1, human_first=True)
     human = Human()
     ai = AI(depth=3)
 
@@ -20,6 +20,7 @@ def main():
             ai.calc(chess, ai.calc_depth)
             ai.play(chess)
 
+        # check whether the game is over
         if chess.check_game_over():
             chess.show_result()
             break
