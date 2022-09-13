@@ -10,6 +10,7 @@ def main():
     ai = AI(depth=3)
 
     while True:
+	# Human and AI takes turns playing chess
         if chess.is_human_turn:
             human.play(chess)
             if not chess.is_close:

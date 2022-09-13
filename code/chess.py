@@ -9,7 +9,7 @@ class Chess:
         self.width_offset, self.height_offset = 100, 100  # offset between chessboard and window
         self.spacing = int((self.width - 2 * self.width_offset) / (self.col - 1))  # spacing between each line
         self.mouse_press_margin = 10  # the margin of mouse pressing
-        self.ai_press_object = []
+        self.ai_press_object = [] # press object list
         self.now_step_score_dict = {"active_five": 50000,
                                     "active_four": 20000,
                                     "sleep_four": 2500,

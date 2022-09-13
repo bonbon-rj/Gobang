@@ -3,7 +3,7 @@ import _tkinter
 
 class Human:
     def __init__(self):
-        self.color = "black"
+        self.color = "black" # color of chess
 
     def play(self, chess):
         """
